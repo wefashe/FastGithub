@@ -83,6 +83,7 @@ public class CertGenerator {
             ContentSigner contentSigner = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM).build(keyPair.getPrivate());
             X509Certificate x509Certificate = new JcaX509CertificateConverter().getCertificate(certBuilder.build(contentSigner));
 
+            log.debug("CA证书信息：颁发者 {}，使用者 {}，有效期从 {} 到 {}", subjectName, subjectName, notBefore, notAfter);
             return new X509Certificate2(x509Certificate, keyPair.getPrivate());
         } catch (Exception e) {
             log.error("CA证书生成出错！", e);

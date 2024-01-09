@@ -38,7 +38,8 @@ public class CertCAInstallerOfWindows implements CertCAInstaller {
             // 查找证书库中是否存在与当前要安装的 CA 证书具有相同公钥的证书
             boolean found = false;
             String systemName = OperatingSystem.getSystemName();
-            Enumeration<String> aliases = keystore.aliases(); // 枚举证书库中所有别名
+            // 枚举证书库中所有别名
+            Enumeration<String> aliases = keystore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
                 Certificate cert = keystore.getCertificate(alias);
@@ -57,12 +58,16 @@ public class CertCAInstallerOfWindows implements CertCAInstaller {
             // 删除临时列表中保存的证书别名
             for (String certAlias : aliasesToRemove) {
                 keystore.deleteEntry(certAlias);
+                log.debug("别名 {} CA证书文件删除成功", certAlias);
             }
             // 如果没有找到相同公钥的证书，则将当前 CA 证书添加到证书库中
-            if (!found) {
+            if (found) {
+                log.debug("CA证书文件 {} 已经安装", caCertPath);
+            } else {
                 keystore.setCertificateEntry(systemName, caCert);
                 // 保存证书库
                 keystore.store(null, null);
+                log.debug("CA证书文件 {} 安装成功", caCertPath);
             }
         } catch (Exception e) {
             // 如果出现异常，则记录日志

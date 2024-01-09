@@ -8,12 +8,10 @@ import com.wefashe.fastgithub.cert.installer.CertCAInstallerOfMacOS;
 import com.wefashe.fastgithub.cert.installer.CertCAInstallerOfWindows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.openssl.PEMWriter;
-import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.*;
-import java.security.*;
+import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
@@ -51,11 +49,14 @@ public class CertServer {
      * 生成CA证书
      * @return
      */
-    private boolean createCertCAIfNotExists() {
+    public boolean createCertCAIfNotExists() {
+
+        File certPath = new File(getCertPath());
 
         File cerCAFile = new File(getCerCAFilePath());
         File keyCAFile = new File(getKeyCAFilePath());
         if (cerCAFile.exists() && keyCAFile.exists()) {
+            log.debug("CA证书文件和私钥文件已经存在 {}", certPath.getAbsolutePath());
             return false;
         }
         cerCAFile.delete();
@@ -71,9 +72,9 @@ public class CertServer {
             return false;
         }
 
-        File certPath = new File(getCertPath());
         if (!certPath.exists()) {
             certPath.mkdirs();
+            log.debug("新建CA证书存储路径 {} 成功", certPath.getAbsolutePath());
         }
 
         try {
@@ -85,8 +86,9 @@ public class CertServer {
             //证书可以二进制形式存入库表，存储字段类型为BLOB
             outputStream.write(certificate.getEncoded());
             outputStream.close();
+            log.debug("CA证书文件 {} 生成成功", cerCAFile.getAbsolutePath());
         } catch (IOException | CertificateEncodingException e) {
-            log.error("生成证书文件{}出错！", cerCAFile.getAbsolutePath(), e);
+            log.error("生成CA证书文件 {} 出错", cerCAFile.getAbsolutePath(), e);
             return false;
         }
 
@@ -102,8 +104,9 @@ public class CertServer {
             pemWriter.close();
             writer.close();
             outputStream.close();
+            log.debug("私钥文件 {} 生成成功", keyCAFile.getAbsolutePath());
         } catch (IOException e) {
-            log.error("生成私钥文件{}出错！", keyCAFile.getAbsolutePath(), e);
+            log.error("生成私钥文件 {} 出错", keyCAFile.getAbsolutePath(), e);
         }
         return true;
     }
