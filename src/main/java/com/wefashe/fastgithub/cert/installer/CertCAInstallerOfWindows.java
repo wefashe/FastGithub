@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileInputStream;
 import java.security.KeyStore;
+import java.security.Principal;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -48,7 +49,12 @@ public class CertCAInstallerOfWindows implements CertCAInstaller {
                         // 如果找到了相同公钥的证书，则标记为已找到，不用重新安装
                         found = true;
                     } else {
-                        if (alias.equals(systemName)) {
+                        // 颁布者与使用者相同且都是系统名称
+                        Principal subjectDN = ((X509Certificate) cert).getSubjectDN();
+                        Principal issuerDN = ((X509Certificate) cert).getIssuerDN();
+                        if (alias.equals(systemName) &&
+                                subjectDN.getName().equals(issuerDN.getName()) &&
+                                subjectDN.getName().contains(systemName)) {
                             // 删除之前旧的的证书
                             aliasesToRemove.add(alias);
                         }
